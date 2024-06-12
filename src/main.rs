@@ -1,21 +1,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use eframe::egui::{self, Align, Context, Layout, SidePanel, CentralPanel, ScrollArea};
+use eframe::egui::{Align, CentralPanel, Context, Layout, ScrollArea, SidePanel};
 use std::os::windows::process::CommandExt;
 use std::process::{Command, Stdio};
 use std::str;
 use winapi::um::winbase::CREATE_NO_WINDOW;
 
+#[derive(Default)]
 struct MyApp {
     output: String,
-}
-
-impl Default for MyApp {
-    fn default() -> Self {
-        Self {
-            output: String::new(),
-        }
-    }
 }
 
 impl eframe::App for MyApp {
@@ -56,7 +49,8 @@ fn run_commands() -> Result<String, Box<dyn std::error::Error>> {
     for line in lines {
         if line.contains("ESTABLISHED") {
             if let Some(pid) = line.split_whitespace().last() {
-                let tasklist_output = run_command("tasklist", &["/svc", "/FI", &format!("PID eq {}", pid)])?;
+                let tasklist_output =
+                    run_command("tasklist", &["/svc", "/FI", &format!("PID eq {}", pid)])?;
                 result.push_str(&tasklist_output);
             }
         }
@@ -70,7 +64,7 @@ fn run_command(command: &str, args: &[&str]) -> Result<String, Box<dyn std::erro
         .stdout(Stdio::piped())
         .creation_flags(CREATE_NO_WINDOW)
         .output()?;
-    
+
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
@@ -80,5 +74,6 @@ fn main() {
         "NetMonGUI",
         native_options,
         Box::new(|_cc| Box::<MyApp>::default()),
-    ).expect("Failed to start eframe");
+    )
+    .expect("Failed to start eframe");
 }
